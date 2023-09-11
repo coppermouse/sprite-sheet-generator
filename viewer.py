@@ -84,16 +84,11 @@ for i in range(len(mesh_index_values)):
         [ int(c*255) for c in colorsys.hsv_to_rgb( (1/len( mesh_index_values ))*i,1,1 )]))
 # ---
 
-polygons = list()
-for face, material, mesh_index in zip( faces, materials, mesh_indexes ):
 
-    if color_type == 'MATERIAL':
-        color = material_colors[ material ]
-    elif color_type == 'MESH_INDEX':
-        color = mesh_index_colors[ mesh_index ]
-
-    polygon = [ p3dto2d( vertex ) for vertex in face ]
-    polygons.append(polygon)
+def render_sort( item ):
+    face, _, mesh_index = item
+    x,y,z = [ ( face[0][i] + face[1][i] + face[2][i] ) / 3 for i in range(3) ]
+    return x + y + z
 
 pygame.init()
 screen = pygame.display.set_mode( (view_size,)*2 )
@@ -103,12 +98,27 @@ clock = pygame.time.Clock()
 _quit = False
 while not _quit:
 
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             _quit = True
+        if event.type == pygame.KEYDOWN:
+            _quit = True
 
-    for polygon in polygons:
-        pygame.draw.polygon( screen, 'lightblue', polygon )
+    polygons = list()
+    for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):
+
+        if color_type == 'MATERIAL':
+            color = material_colors[ material ]
+        elif color_type == 'MESH_INDEX':
+            color = mesh_index_colors[ mesh_index ]
+
+        polygon = [ p3dto2d( vertex ) for vertex in face ]
+        polygons.append( ( polygon, color ) )
+
+
+    for polygon, color in polygons:
+        pygame.draw.polygon( screen, color, polygon )
 
     clock.tick(60)
     pygame.display.update()
