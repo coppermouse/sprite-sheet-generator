@@ -54,8 +54,16 @@ def glb_material_mesh_index( file_obj ):
         length = dtype.itemsize * count * per_count
         access[ index ] = np.frombuffer( data[start:start + length], dtype=dtype ).reshape( shape )
 
-    final_faces, materials, mesh_indexes = [], [], []
+    final_faces, materials, mesh_indexes, mesh_indexes_thresholds = [], [], [], []
+    current_mesh_index = 0
     for mesh_index, m in enumerate( header['meshes'] ):
+
+        if current_mesh_index != mesh_index:
+            end = len(final_faces)
+            start = 0 if not mesh_indexes_thresholds else mesh_indexes_thresholds[-1][1] 
+            mesh_indexes_thresholds.append( (start,end) )
+            current_mesh_index = mesh_index
+
         for p in m['primitives']:
             vertices = access[ p['attributes']['POSITION'] ]
             for indices in access[ p['indices'] ].reshape( (-1, 3) ):
@@ -63,6 +71,9 @@ def glb_material_mesh_index( file_obj ):
                 materials.append( p['material'] )
                 mesh_indexes.append( mesh_index )
 
-    return np.array(final_faces), materials, mesh_indexes
+    start = 0 if not mesh_indexes_thresholds else mesh_indexes_thresholds[-1][1] 
+    end = len(final_faces)
+    mesh_indexes_thresholds.append( (start,end) )
+    return np.array(final_faces), materials, mesh_indexes, mesh_indexes_thresholds
 
 

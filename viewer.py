@@ -15,7 +15,7 @@ view_size = 600
 color_type = 'MATERIAL'
 
 
-def rotate( faces, axis, theta ):
+def rotate( faces, axis, theta, _slice = None, point = None ):
 
     # I based this code on numpy-stl rotation logic.
     # I wouldn't know how to figure out this math myself.
@@ -38,9 +38,17 @@ def rotate( faces, axis, theta ):
                             [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
                             [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
     # ---
+        
+    if _slice:
+        faces = faces[ _slice[0] : _slice[1] ]
 
-    for i in range(3):
-        faces[:, i] = faces[:, i].dot( rotation_matrix )
+    if point:
+        point = np.array(point)
+        for i in range(3):
+            faces[:, i] = ( faces[:, i] - point ).dot( rotation_matrix ) + point
+    else:
+        for i in range(3):
+            faces[:, i] = faces[:, i].dot( rotation_matrix )
 
 
 def p3dto2d( vertex ):
@@ -55,12 +63,14 @@ def p3dto2d( vertex ):
 
 # --- load and transform object to view
 with open('object.glb', 'rb') as f:
-    faces, materials, mesh_indexes = glb_material_mesh_index(f)
+    faces, materials, mesh_indexes, mesh_indexes_thresholds = glb_material_mesh_index(f)
 
 rotate(faces, (0,1,0), math.pi )
 rotate(faces, (0,0,1), math.pi*0.5 )
 faces *= 250
 faces += (0,0,120)
+rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[6], [0,-68,28] )
+rotate(faces, (1,0,0), math.pi*0.5, mesh_indexes_thresholds[3], [0,68,28] )
 
 # ----
 
@@ -105,6 +115,8 @@ while not _quit:
         if event.type == pygame.KEYDOWN:
             _quit = True
 
+    rotate(faces, (0,1,0), math.pi*0.01, mesh_indexes_thresholds[3], [0,68,28] )
+
     polygons = list()
     for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):
 
@@ -116,7 +128,7 @@ while not _quit:
         polygon = [ p3dto2d( vertex ) for vertex in face ]
         polygons.append( ( polygon, color ) )
 
-
+    screen.fill(0x112233)
     for polygon, color in polygons:
         pygame.draw.polygon( screen, color, polygon )
 
