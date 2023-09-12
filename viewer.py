@@ -136,6 +136,12 @@ def get_sun_vector():
     return r
 
 
+selected_color = {
+    'h': 0,
+    's': 0,
+    'v': 0,
+}
+
 while not _quit:
 
 
@@ -146,6 +152,14 @@ while not _quit:
             pass
         elif event.type == pygame.MOUSEBUTTONDOWN:
             hold = hover
+
+            for e, t in enumerate(('h','s','v')):
+                if event.pos[1] >= 570+e*10 and event.pos[1] < 580+e*10:
+                    selected_color[t] = event.pos[0]/600
+
+
+            material_colors[2] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
+
         elif event.type == pygame.MOUSEBUTTONUP:
             hold = None
 
@@ -195,6 +209,16 @@ while not _quit:
     pygame.draw.line( screen, 'yellow', *[ project_view(sv) for sv in sun_vectors] )
     for e, c in enumerate( sun_vectors ):
         pygame.draw.circle( screen, 'blue' if not hover == ('sv',e) else 'white', project_view(c), 8,1  )
+
+
+    for e, t in enumerate(('h','s','v')):
+        for c in range(600):
+            rgb = colorsys.hsv_to_rgb( **selected_color | {t:c/600} )
+            color = pygame.Color(np.array(rgb)*255)
+            pygame.draw.rect( screen, color, (c,570+e*10,1,10) )
+
+
+
 
     clock.tick(60)
     pygame.display.update()
