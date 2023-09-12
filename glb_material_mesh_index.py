@@ -3,6 +3,7 @@
 # author: coppermouse
 # ----------------------------------------
 
+import math
 import json
 import numpy as np
 
@@ -67,7 +68,10 @@ def glb_material_mesh_index( file_obj ):
         for p in m['primitives']:
             vertices = access[ p['attributes']['POSITION'] ]
             for indices in access[ p['indices'] ].reshape( (-1, 3) ):
-                final_faces.append( [ vertices[i] for i in indices ] )
+                face = [ vertices[i] for i in indices ]
+                normal = surface_normal( face )
+                face += [ normal  ]
+                final_faces.append( face )
                 materials.append( p['material'] )
                 mesh_indexes.append( mesh_index )
 
@@ -75,5 +79,23 @@ def glb_material_mesh_index( file_obj ):
     end = len(final_faces)
     mesh_indexes_thresholds.append( (start,end) )
     return np.array(final_faces), materials, mesh_indexes, mesh_indexes_thresholds
+
+
+def surface_normal( surface ):
+
+    surface = np.array( surface )
+    n = np.array( ( 0.0,) * 3 )
+
+    for i, a in enumerate( surface ):
+        b = surface [ ( i + 1 ) % len( surface ), : ]
+        n[0] += ( a[1] - b[1] ) * ( a[2] + b[2] ) 
+        n[1] += ( a[2] - b[2] ) * ( a[0] + b[0] )
+        n[2] += ( a[0] - b[0] ) * ( a[1] + b[1] )
+
+    norm = np.linalg.norm(n)
+    if norm == 0: raise ValueError('zero norm')
+    r = n / norm
+    assert math.isclose( np.linalg.norm(r), 1 ) 
+    return r
 
 

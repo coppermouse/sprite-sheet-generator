@@ -69,8 +69,10 @@ with open('object.glb', 'rb') as f:
 
 rotate(faces, (0,1,0), math.pi )
 rotate(faces, (0,0,1), math.pi*0.5 )
-faces *= 250
-faces += (0,0,120)
+
+faces *= [[250,250,250],[250,250,250],[250,250,250],[1,1,1]] # TODO: this is just temp...
+faces += [[0,0,120],[0,0,120],[0,0,120],[0,0,0]] # TODO: this is just temp...
+
 rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[6], [0,-68,28] )
 rotate(faces, (1,0,0), math.pi*0.5, mesh_indexes_thresholds[3], [0,68,28] )
 
@@ -126,6 +128,14 @@ def unproject_view( p ): # unproject a screen point to 3d point based on view
     return ( view[0], x-hvs ), ( view[1], y-hvs )
 
 
+def get_sun_vector():
+    a,b = sun_vectors
+    v = a-b
+    norm = np.linalg.norm(v)
+    r = v / norm
+    return r
+
+
 while not _quit:
 
 
@@ -170,8 +180,11 @@ while not _quit:
         elif color_type == 'MESH_INDEX':
             color = mesh_index_colors[ mesh_index ]
 
-        polygon = [ p3dto2d( vertex ) for vertex in face ]
-        polygons.append( ( polygon, color ) )
+        polygon = [ p3dto2d( vertex ) for vertex in face[:3] ]
+        v = face[3].dot( get_sun_vector()  )
+        v = (v+1)/2
+        if 0 < v < 1:
+            polygons.append( ( polygon, pygame.Color(color).lerp( '#000000', v )))
 
     screen.fill( 0x112233 )
     for polygon, color in polygons:
