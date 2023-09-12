@@ -11,6 +11,8 @@ from glb_material_mesh_index import glb_material_mesh_index
 
 
 view_size = 600
+hvs = half_view_size = view_size // 2
+
 # color_type = 'MESH_INDEX'
 color_type = 'MATERIAL'
 
@@ -105,15 +107,58 @@ screen = pygame.display.set_mode( (view_size,)*2 )
 
 clock = pygame.time.Clock()
 
+sun_vectors = [ np.array(v) for v in [ (10,10,0),(-10,-10,0) ] ]
+
 _quit = False
+
+hover = None
+hold = None
+
+view = [0,1] # what axis is x,y on screen.
+
+
+def project_view( v ): # project 3d point to screen based on view
+    return [ v[d] + hvs for d in view ]
+
+
+def unproject_view( p ): # unproject a screen point to 3d point based on view
+    x, y = p
+    return ( view[0], x-hvs ), ( view[1], y-hvs )
+
+
 while not _quit:
 
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             _quit = True
-        if event.type == pygame.KEYDOWN:
-            _quit = True
+        elif event.type == pygame.KEYDOWN:
+            pass
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            hold = hover
+        elif event.type == pygame.MOUSEBUTTONUP:
+            hold = None
+
+    # switch between x,y and x,z by holdning left ctrl
+    if pygame.key.get_pressed()[pygame.K_LCTRL]:
+        view = [0,2]
+    else:
+        view = [0,1]
+
+    if hold:
+        for e, c in enumerate(sun_vectors):
+            if hold == ('sv',e):
+                for i, v in unproject_view( pygame.mouse.get_pos() ):
+                    c[i] = v
+
+    else:
+        hover = None
+        for e, c in enumerate(sun_vectors):
+            a = project_view(c)
+            b = np.array(pygame.mouse.get_pos())
+            dist = np.linalg.norm(a-b)
+            if dist < 8:
+                hover = ('sv',e)        
 
     rotate(faces, (0,1,0), math.pi*0.01, mesh_indexes_thresholds[3], [0,68,28] )
 
@@ -128,9 +173,15 @@ while not _quit:
         polygon = [ p3dto2d( vertex ) for vertex in face ]
         polygons.append( ( polygon, color ) )
 
-    screen.fill(0x112233)
+    screen.fill( 0x112233 )
     for polygon, color in polygons:
         pygame.draw.polygon( screen, color, polygon )
+
+
+    
+    pygame.draw.line( screen, 'yellow', *[ project_view(sv) for sv in sun_vectors] )
+    for e, c in enumerate( sun_vectors ):
+        pygame.draw.circle( screen, 'blue' if not hover == ('sv',e) else 'white', project_view(c), 8,1  )
 
     clock.tick(60)
     pygame.display.update()
