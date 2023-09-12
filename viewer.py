@@ -142,6 +142,8 @@ selected_color = {
     'v': 0,
 }
 
+selected_color_index = 0
+
 while not _quit:
 
 
@@ -153,12 +155,18 @@ while not _quit:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             hold = hover
 
+
+            for e, color in enumerate(material_colors):
+                rect = pygame.Rect(( 0, e*40, 40, 40 ))
+                if rect.collidepoint( event.pos ):
+                    selected_color_index = e
+
             for e, t in enumerate(('h','s','v')):
                 if event.pos[1] >= 570+e*10 and event.pos[1] < 580+e*10:
                     selected_color[t] = event.pos[0]/600
 
 
-            material_colors[2] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
+                    material_colors[selected_color_index] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
 
         elif event.type == pygame.MOUSEBUTTONUP:
             hold = None
@@ -218,6 +226,8 @@ while not _quit:
             pygame.draw.rect( screen, color, (c,570+e*10,1,10) )
 
 
+    for e, color in enumerate(material_colors):
+        pygame.draw.rect( screen, color, (0,e*40,40,40) )
 
 
     clock.tick(60)
