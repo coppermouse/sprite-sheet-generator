@@ -72,21 +72,25 @@ for i in range( len(materials) ):
         materials[i] = 4
 # ---
 
+faces *= [[250,250,250],[250,250,250],[250,250,250],[1,1,1]] # TODO: this is just temp...
+rotate(faces, (0,1,0), math.pi*0.5, mesh_indexes_thresholds[4], [68,0,-237] )
+rotate(faces, (0,1,0), math.pi*1.5, mesh_indexes_thresholds[5], [-68,0,-237] )
+#rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[5], [0,-68,237] )
+
+
+
 for axis, theta in config['rotate-object']:
     rotate(faces, axis, theta )
 #rotate(faces, (0,1,0), -math.pi*0.34 )
 
 move = config.get('move-object', (0,0,0) )
-faces *= [[250,250,250],[250,250,250],[250,250,250],[1,1,1]] # TODO: this is just temp...
 faces += [move,move,move,[0,0,0]] # TODO: this is just temp...
-
-#rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[6], [0,-68,28] )
-#rotate(faces, (1,0,0), math.pi*0.5, mesh_indexes_thresholds[3], [0,68,28] )
 
 # ----
 
 
 p3dto2d = config['projection_object']
+render_sort = config['render-sort']
 
 
 # --- setup color lists
@@ -118,10 +122,7 @@ for index, color in config['colors'].items():
 # ---
 
 
-def render_sort( item ):
-    face, _, mesh_index = item
-    x,y,z = [ ( face[0][i] + face[1][i] + face[2][i] ) / 3 for i in range(3) ]
-    return x + y + z
+
 
 pygame.init()
 screen = pygame.display.set_mode( (view_size,)*2 )
@@ -210,7 +211,6 @@ while not _quit:
             if dist < 8:
                 hover = ('sv',e)        
 
-    #rotate(faces, (0,1,0), math.pi*0.01, mesh_indexes_thresholds[3], [0,68,28] )
 
     polygons = list()
     for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):

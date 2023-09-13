@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 def projection_military( vertex ):
     from consts import view_size
@@ -23,6 +24,19 @@ def make_projection_perspective( fov ):
         )
 
     return projection_perspective
+
+def render_sort_xyz_sum( item ):
+    face, _, mesh_index = item
+    x,y,z = [ ( face[0][i] + face[1][i] + face[2][i] ) / 3 for i in range(3) ]
+    return x + y + z
+
+
+def render_sort_distance( item ):
+    face, _, mesh_index = item
+    x,y,z = [ ( face[0][i] + face[1][i] + face[2][i] ) / 3 for i in range(3) ]
+    v = np.array([x,y,z])
+    dist = np.linalg.norm(v)
+    return -dist
 
 
 colors = {
@@ -49,6 +63,7 @@ configs = {
         'rotate-object': [ [(0,1,0),math.pi], [(0,0,1), math.pi*0.5]  ],
         'projection_object': projection_military,
         'colors': colors,
+        'render-sort': render_sort_xyz_sum,
     },
 
     1: {
@@ -59,6 +74,7 @@ configs = {
         'move-object': (-1300,0,0),
         'projection_object': make_projection_perspective( fov = 30 ),
         'colors': colors,
+        'render-sort': render_sort_distance,
     }
 
 }
