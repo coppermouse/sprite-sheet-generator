@@ -163,14 +163,15 @@ while not _quit:
 
 
             for e, color in enumerate(material_colors):
-                rect = pygame.Rect(( 0, e*40, 40, 40 ))
-                if rect.collidepoint( event.pos ):
-                    selected_color_index = e
+                for u in range(2):
+                    rect = pygame.Rect(( u*40, e*40, 40, 40 ))
+                    if rect.collidepoint( event.pos ):
+                        selected_color_index = (e,u)
 
             for e, t in enumerate(('h','s','v')):
                 if event.pos[1] >= 570+e*10 and event.pos[1] < 580+e*10:
                     selected_color[t] = event.pos[0]/600
-                    material_colors[selected_color_index][0] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
+                    material_colors[ selected_color_index[0] ][ selected_color_index[1] ] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
 
         elif event.type == pygame.MOUSEBUTTONUP:
             hold = None
@@ -202,7 +203,7 @@ while not _quit:
     for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):
 
         if color_type == 'MATERIAL':
-            color = material_colors[ material ][0]
+            color_a, color_b = material_colors[ material ]
         elif color_type == 'MESH_INDEX':
             color = mesh_index_colors[ mesh_index ]
 
@@ -210,7 +211,7 @@ while not _quit:
         v = face[3].dot( get_sun_vector()  )
         v = (v+1)/2
         if 0 < v < 1:
-            polygons.append( ( polygon, pygame.Color(color).lerp( '#000000', v )))
+            polygons.append( ( polygon, pygame.Color(color_a).lerp( color_b, v )))
 
     screen.fill( 0x112233 )
     for polygon, color in polygons:
