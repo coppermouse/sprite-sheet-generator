@@ -97,6 +97,11 @@ mesh_index_colors = []
 for i in range(len(mesh_index_values)):
     mesh_index_colors.append( tuple(
         [ int(c*255) for c in colorsys.hsv_to_rgb( (1/len( mesh_index_values ))*i,1,1 )]))
+
+# make material colors into pair
+material_colors = [list(a) for a in zip( material_colors, material_colors )]
+
+
 # ---
 
 
@@ -165,9 +170,7 @@ while not _quit:
             for e, t in enumerate(('h','s','v')):
                 if event.pos[1] >= 570+e*10 and event.pos[1] < 580+e*10:
                     selected_color[t] = event.pos[0]/600
-
-
-                    material_colors[selected_color_index] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
+                    material_colors[selected_color_index][0] = pygame.Color(np.array(colorsys.hsv_to_rgb(**selected_color))*255 )
 
         elif event.type == pygame.MOUSEBUTTONUP:
             hold = None
@@ -199,7 +202,7 @@ while not _quit:
     for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):
 
         if color_type == 'MATERIAL':
-            color = material_colors[ material ]
+            color = material_colors[ material ][0]
         elif color_type == 'MESH_INDEX':
             color = mesh_index_colors[ mesh_index ]
 
@@ -227,8 +230,9 @@ while not _quit:
             pygame.draw.rect( screen, color, (c,570+e*10,1,10) )
 
 
-    for e, color in enumerate(material_colors):
-        pygame.draw.rect( screen, color, (0,e*40,40,40) )
+    for e, colors in enumerate(material_colors):
+        for u, color in enumerate(colors):
+            pygame.draw.rect( screen, color, (u*40,e*40,40,40) )
 
     pygame.draw.rect( screen, 'white', (0,hvs,view_size,1) )
     pygame.draw.rect( screen, 'white', (hvs,0,1,view_size) )
