@@ -3,6 +3,7 @@
 # author: coppermouse
 # ----------------------------------------
 
+import os
 import sys
 import pygame
 import math
@@ -19,6 +20,12 @@ hvs = half_view_size = view_size // 2
 color_type = 'MATERIAL'
 
 config_index = int(sys.argv[1])
+
+background_color = 0x00cccc
+
+save_to_file = None
+if len(sys.argv) == 3:
+    save_to_file = sys.argv[2]
 
 
 def rotate( faces, axis, theta, _slice = None, point = None ):
@@ -226,31 +233,51 @@ while not _quit:
         if 0 < v < 1:
             polygons.append( ( polygon, pygame.Color(color_a).lerp( color_b, v )))
 
-    screen.fill( 0x112233 )
+    screen.fill( background_color )
     for polygon, color in polygons:
         pygame.draw.polygon( screen, color, polygon )
 
 
-    
-    pygame.draw.line( screen, 'yellow', *[ project_view(sv) for sv in sun_vectors] )
-    for e, c in enumerate( sun_vectors ):
-        pygame.draw.circle( screen, 'blue' if not hover == ('sv',e) else 'white', project_view(c), 8,1  )
+    if not save_to_file: 
+        pygame.draw.line( screen, 'yellow', *[ project_view(sv) for sv in sun_vectors] )
+        for e, c in enumerate( sun_vectors ):
+            pygame.draw.circle( screen, 'blue' if not hover == ('sv',e) else 'white', project_view(c), 8,1  )
 
 
-    for e, t in enumerate(('h','s','v')):
-        for c in range(600):
-            rgb = colorsys.hsv_to_rgb( **selected_color | {t:c/600} )
-            color = pygame.Color(np.array(rgb)*255)
-            pygame.draw.rect( screen, color, (c,570+e*10,1,10) )
+    if not save_to_file:
+        for e, t in enumerate(('h','s','v')):
+            for c in range(600):
+                rgb = colorsys.hsv_to_rgb( **selected_color | {t:c/600} )
+                color = pygame.Color(np.array(rgb)*255)
+                pygame.draw.rect( screen, color, (c,570+e*10,1,10) )
 
+    if not save_to_file:
+        for e, colors in enumerate(material_colors):
+            for u, color in enumerate(colors):
+                pygame.draw.rect( screen, color, (u*40,e*40,40,40) )
 
-    for e, colors in enumerate(material_colors):
-        for u, color in enumerate(colors):
-            pygame.draw.rect( screen, color, (u*40,e*40,40,40) )
+    if not save_to_file:
+        pygame.draw.rect( screen, 'white', (0,hvs,view_size,1) )
+        pygame.draw.rect( screen, 'white', (hvs,0,1,view_size) )
 
-    pygame.draw.rect( screen, 'white', (0,hvs,view_size,1) )
-    pygame.draw.rect( screen, 'white', (hvs,0,1,view_size) )
+    if save_to_file:
+        sprite = screen.copy()
+        sprite.convert()
+        sprite.set_colorkey( background_color )
+        mask = pygame.mask.from_surface( sprite  )
+        border = mask.to_surface( setcolor='black', unsetcolor=(0,0,0,0))
+        base = pygame.Surface( sprite.get_size() )
+        base.fill( background_color )
+        for dx in range(-9,10):
+            for dy in range(-9,10):
+                base.blit( border, (dx,dy))
+        base.blit(sprite,(0,0))
 
+        base = pygame.transform.smoothscale( base, (100,100) )
+        if os.path.isfile(save_to_file):
+            raise Exception('file already exist')
+        pygame.image.save( base, save_to_file )
+        _quit = True
 
     clock.tick(60)
     pygame.display.update()
