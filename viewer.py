@@ -3,18 +3,22 @@
 # author: coppermouse
 # ----------------------------------------
 
+import sys
 import pygame
 import math
 import colorsys
 import numpy as np
+from consts import view_size
+from scene_setup import configs
 from glb_material_mesh_index import glb_material_mesh_index
 
 
-view_size = 600
 hvs = half_view_size = view_size // 2
 
 # color_type = 'MESH_INDEX'
 color_type = 'MATERIAL'
+
+config_index = int(sys.argv[1])
 
 
 def rotate( faces, axis, theta, _slice = None, point = None ):
@@ -53,30 +57,27 @@ def rotate( faces, axis, theta, _slice = None, point = None ):
             faces[:, i] = faces[:, i].dot( rotation_matrix )
 
 
-def p3dto2d( vertex ):
-    # projection method.
-    x,y,z = vertex
-    r = (
-        x - y + view_size//2,
-        x + y - z + view_size//2,
-    )
-    return r
-
+config = configs[ config_index ]
 
 # --- load and transform object to view
-with open('object.glb', 'rb') as f:
+with open('object2.glb', 'rb') as f:
     faces, materials, mesh_indexes, mesh_indexes_thresholds = glb_material_mesh_index(f)
 
-rotate(faces, (0,1,0), math.pi )
-rotate(faces, (0,0,1), math.pi*0.5 )
+for axis, theta in config['rotate-object']:
+    rotate(faces, axis, theta )
+#rotate(faces, (0,1,0), -math.pi*0.34 )
 
+move = config.get('move-object', (0,0,0) )
 faces *= [[250,250,250],[250,250,250],[250,250,250],[1,1,1]] # TODO: this is just temp...
-faces += [[0,0,120],[0,0,120],[0,0,120],[0,0,0]] # TODO: this is just temp...
+faces += [move,move,move,[0,0,0]] # TODO: this is just temp...
 
-rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[6], [0,-68,28] )
-rotate(faces, (1,0,0), math.pi*0.5, mesh_indexes_thresholds[3], [0,68,28] )
+#rotate(faces, (1,0,0), math.pi*1.5, mesh_indexes_thresholds[6], [0,-68,28] )
+#rotate(faces, (1,0,0), math.pi*0.5, mesh_indexes_thresholds[3], [0,68,28] )
 
 # ----
+
+
+p3dto2d = config['projection_object']
 
 
 # --- setup color lists
@@ -192,7 +193,7 @@ while not _quit:
             if dist < 8:
                 hover = ('sv',e)        
 
-    rotate(faces, (0,1,0), math.pi*0.01, mesh_indexes_thresholds[3], [0,68,28] )
+    #rotate(faces, (0,1,0), math.pi*0.01, mesh_indexes_thresholds[3], [0,68,28] )
 
     polygons = list()
     for face, material, mesh_index in sorted( zip( faces, materials, mesh_indexes ), key = render_sort ):
@@ -228,6 +229,9 @@ while not _quit:
 
     for e, color in enumerate(material_colors):
         pygame.draw.rect( screen, color, (0,e*40,40,40) )
+
+    pygame.draw.rect( screen, 'white', (0,hvs,view_size,1) )
+    pygame.draw.rect( screen, 'white', (hvs,0,1,view_size) )
 
 
     clock.tick(60)
