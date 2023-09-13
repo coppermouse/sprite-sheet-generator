@@ -6,7 +6,7 @@ def projection_military( vertex ):
     x,y,z = vertex
     return (
         x - y + view_size//2,
-        x + y - z + view_size//2,
+        x + y - z + view_size//2 + 200, # TODO: just a temp fix to make demo object more in center
     )
 
 
@@ -20,7 +20,7 @@ def make_projection_perspective( fov ):
         x,y,z = vertex
         return (
             (y / x) * fovf * view_size//2 + view_size//2,
-            (z / x) * fovf * view_size//2 + view_size//2
+            (z / x) * fovf * view_size//2 + view_size//2 + 100 # TODO: just a temp fix to make demo object more in center
         )
 
     return projection_perspective
