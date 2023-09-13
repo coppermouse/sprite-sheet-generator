@@ -101,6 +101,8 @@ for i in range(len(mesh_index_values)):
 # make material colors into pair
 material_colors = [list(a) for a in zip( material_colors, material_colors )]
 
+for index, color in config['colors'].items():
+    material_colors[ index[0] ][ index[1] ] = pygame.Color(color)
 
 # ---
 
