@@ -8,14 +8,21 @@ def projection_military( vertex ):
         x + y - z + view_size//2,
     )
 
-def projection_perspective( vertex ):
-    from consts import view_size
-    x,y,z = vertex
-    return (
-        (y / x) * view_size//2 + view_size//2,
-        (z / x) * view_size//2 + view_size//2
 
-    )
+def make_projection_perspective( fov ):
+
+    fovf = (1/math.tan(math.radians(fov/2)))
+ 
+
+    def projection_perspective( vertex ):
+        from consts import view_size
+        x,y,z = vertex
+        return (
+            (y / x) * fovf * view_size//2 + view_size//2,
+            (z / x) * fovf * view_size//2 + view_size//2
+        )
+
+    return projection_perspective
 
 
 colors = {
@@ -49,8 +56,8 @@ configs = {
             [(0,1,0),math.pi], [(0,0,1), math.pi*0.5],
             [(0,1,0), -math.pi*0.34+math.pi*0.0]
         ],
-        'move-object': (-2100,0,0),
-        'projection_object': projection_perspective,
+        'move-object': (-1300,0,0),
+        'projection_object': make_projection_perspective( fov = 30 ),
         'colors': colors,
     }
 
