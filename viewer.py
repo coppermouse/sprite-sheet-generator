@@ -63,6 +63,15 @@ config = configs[ config_index ]
 with open('object2.glb', 'rb') as f:
     faces, materials, mesh_indexes, mesh_indexes_thresholds = glb_material_mesh_index(f)
 
+# --- HACK: this is just to alter the objects materials. this is just for this specific object I am using for this demo (TODO: real solution is either to modify the object or do this logic in scene setup)
+for i in range( len(materials) ):
+    if mesh_indexes[i] == 0:
+        if materials[i] == 1:
+            materials[i] = 3
+    if mesh_indexes[i] == 3:
+        materials[i] = 4
+# ---
+
 for axis, theta in config['rotate-object']:
     rotate(faces, axis, theta )
 #rotate(faces, (0,1,0), -math.pi*0.34 )
@@ -102,8 +111,10 @@ for i in range(len(mesh_index_values)):
 material_colors = [list(a) for a in zip( material_colors, material_colors )]
 
 for index, color in config['colors'].items():
-    material_colors[ index[0] ][ index[1] ] = pygame.Color(color)
-
+    try:
+        material_colors[ index[0] ][ index[1] ] = pygame.Color(color)
+    except IndexError:
+        pass
 # ---
 
 

@@ -24,6 +24,15 @@ colors = {
 
     (0,0): '#ff85d4',
     (0,1): '#ff3899',
+    (3,0): '#ff85d4',
+    (3,1): '#ff3899',
+
+    (1,0): '#3e241d',
+    (1,1): '#2c1816',
+
+    (4,1): '#6084b0',
+    (4,0): '#192345',
+
 }
 
 
@@ -40,7 +49,7 @@ configs = {
             [(0,1,0),math.pi], [(0,0,1), math.pi*0.5],
             [(0,1,0), -math.pi*0.34+math.pi*0.0]
         ],
-        'move-object': (-800,0,0),
+        'move-object': (-2100,0,0),
         'projection_object': projection_perspective,
         'colors': colors,
     }
